@@ -12,14 +12,16 @@ const JWT_SECRET = process.env.SECRET_KEY;
 
 // console.log(JWT_SECRET);
 
-// Create a user using: POST "api/auth/createuser". Doesn't require auth
+// Route 1 : Create a user using: POST "api/auth/createuser". Doesn't require auth
 router.post(
   "/createuser",
-  body("name").isLength({ min: 3 }),
-  // email must be an email
-  body("email").isEmail(),
-  // password must be at least 5 chars long
-  body("password").isLength({ min: 5 }),
+  [
+    body("name").isLength({ min: 3 }),
+    // email must be an email
+    body("email").isEmail(),
+    // password must be at least 5 chars long
+    body("password").isLength({ min: 5 }),
+  ],
 
   async (req, res) => {
     // console.log(req.body);
@@ -75,15 +77,16 @@ router.post(
   }
 );
 
-// Create a user using: POST "api/auth/loginuser". Doesn't require login
-
+// Route 2 : Create a user using: POST "api/auth/loginuser". Doesn't require login
 router.post(
   "/loginuser",
 
-  // email must be an email
-  body("email", "enter valid email").isEmail(),
-  // password must be at least 5 chars long
-  body("password", "enter password").exists(),
+  [
+    // email must be an email
+    body("email", "enter valid email").isEmail(),
+    // password must be at least 5 chars long
+    body("password", "enter password").exists(),
+  ],
 
   async (req, res) => {
     // console.log(req.body);
@@ -123,8 +126,7 @@ router.post(
   }
 );
 
-// Get the user using: POST "api/auth/getuser". require login
-
+// Route 3 : Get the user using: POST "api/auth/getuser". require login
 router.post("/getuser", fetchuser, async (req, res) => {
   try {
     userId = req.user.id;
