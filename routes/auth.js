@@ -12,6 +12,7 @@ const JWT_SECRET = process.env.SECRET_KEY;
 
 // console.log(JWT_SECRET);
 
+let TaskSuccess = false;
 // Route 1 : Create a user using: POST "api/auth/createuser". Doesn't require auth
 router.post(
   "/createuser",
@@ -28,7 +29,7 @@ router.post(
 
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
+      return res.status(400).json({ TaskSuccess, errors: errors.array() });
     }
 
     // const newUser = new User({
@@ -44,7 +45,10 @@ router.post(
       if (user) {
         return res
           .status(400)
-          .json({ error: "Sorry a user with this email already exists" });
+          .json({
+            TaskSuccess,
+            error: "Sorry a user with this email already exists",
+          });
       }
 
       user = await User.create({
@@ -60,10 +64,12 @@ router.post(
       };
       const token = jwt.sign(data, JWT_SECRET);
       // console.log(token);
-      res.json({ token });
+      TaskSuccess = true;
+
+      res.json({ TaskSuccess, token });
     } catch (err) {
       console.log(err);
-      res.json({ error: "Some error occured" });
+      res.json({ TaskSuccess, error: "Some error occured" });
     }
     // .then((user) => res.json(user))
     // .catch((err) => {
@@ -93,7 +99,7 @@ router.post(
 
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
+      return res.status(400).json({ TaskSuccess, errors: errors.array() });
     }
 
     const { email, password } = req.body;
@@ -102,13 +108,18 @@ router.post(
       let user = await User.findOne({ email: req.body.email });
 
       if (!user) {
-        return res.status(400).json({ error: "Sorry wrong credentials" });
+        TaskSuccess =false
+        return res
+          .status(400)
+          .json({ TaskSuccess, error: "Sorry wrong credentials" });
       }
 
       const passwordCompare = await bcrypt.compare(password, user.password);
 
       if (!passwordCompare) {
-        return res.status(400).json({ error: "Sorry wrong credentials" });
+        return res
+          .status(400)
+          .json({ TaskSuccess, error: "Sorry wrong credentials" });
       }
 
       const payload = {
@@ -118,10 +129,11 @@ router.post(
       };
       const token = jwt.sign(payload, JWT_SECRET);
       // console.log(token);
-      res.json({ token });
+      TaskSuccess = true;
+      res.json({ TaskSuccess, token });
     } catch (err) {
       console.log(err);
-      res.json({ error: "Some error occured" });
+      res.json({ TaskSuccess, error: "Some error occured" });
     }
   }
 );
@@ -129,13 +141,15 @@ router.post(
 // Route 3 : Get the user using: POST "api/auth/getuser". require login
 router.post("/getuser", fetchuser, async (req, res) => {
   try {
-    userId = req.user.id;
+    let userId = req.user.id;
     const user = await User.findById(userId).select("-password");
     // console.log(user);
-    res.send(user);
+    TaskSuccess = true;
+    res.send({ TaskSuccess, user });
   } catch (error) {
     console.log(error);
-    res.status(500).send("Some error occured");
+    // res.status(500).send("Some error occured");
+    res.status(500).json({ TaskSuccess, error: "Some error occured" });
   }
 });
 
