@@ -29,6 +29,7 @@ router.post(
 
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
+      TaskSuccess = false;
       return res.status(400).json({ TaskSuccess, errors: errors.array() });
     }
 
@@ -43,12 +44,11 @@ router.post(
       let user = await User.findOne({ email: req.body.email });
 
       if (user) {
-        return res
-          .status(400)
-          .json({
-            TaskSuccess,
-            error: "Sorry a user with this email already exists",
-          });
+        TaskSuccess = false;
+        return res.status(400).json({
+          TaskSuccess,
+          error: "Sorry a user with this email already exists",
+        });
       }
 
       user = await User.create({
@@ -65,10 +65,10 @@ router.post(
       const token = jwt.sign(data, JWT_SECRET);
       // console.log(token);
       TaskSuccess = true;
-
       res.json({ TaskSuccess, token });
     } catch (err) {
       console.log(err);
+      TaskSuccess = false;
       res.json({ TaskSuccess, error: "Some error occured" });
     }
     // .then((user) => res.json(user))
@@ -99,6 +99,7 @@ router.post(
 
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
+      TaskSuccess = false;
       return res.status(400).json({ TaskSuccess, errors: errors.array() });
     }
 
@@ -108,14 +109,14 @@ router.post(
       let user = await User.findOne({ email: req.body.email });
 
       if (!user) {
-        TaskSuccess =false
+        TaskSuccess = false;
         return res
           .status(400)
           .json({ TaskSuccess, error: "Sorry wrong credentials" });
       }
 
       const passwordCompare = await bcrypt.compare(password, user.password);
-
+      TaskSuccess = false;
       if (!passwordCompare) {
         return res
           .status(400)
@@ -133,6 +134,7 @@ router.post(
       res.json({ TaskSuccess, token });
     } catch (err) {
       console.log(err);
+      TaskSuccess = false;
       res.json({ TaskSuccess, error: "Some error occured" });
     }
   }
@@ -149,6 +151,7 @@ router.post("/getuser", fetchuser, async (req, res) => {
   } catch (error) {
     console.log(error);
     // res.status(500).send("Some error occured");
+    TaskSuccess = false;
     res.status(500).json({ TaskSuccess, error: "Some error occured" });
   }
 });
